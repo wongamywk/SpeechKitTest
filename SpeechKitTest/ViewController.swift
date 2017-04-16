@@ -19,13 +19,13 @@ final class ViewController: UIViewController {
     // MARK: Constants
 
     private let audioEngine = AVAudioEngine()
-    private let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
     private let request: SFSpeechAudioBufferRecognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     private let audioBus: AVAudioNodeBus = 0
     private let bufferSize: AVAudioFrameCount = 1024
 
     // MARK: Properties
 
+    private var speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
     private var recognitionTask: SFSpeechRecognitionTask?
     private var isRecognitionRunning: Bool = false {
         didSet {
@@ -41,6 +41,13 @@ final class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+    }
+
+    // MARK: Internal helpers
+
+    func timerEnded() {
+        debugPrint(#function)
+        stopRecordingAndRecognition()
     }
 
     // MARK: IBActions
@@ -65,6 +72,7 @@ final class ViewController: UIViewController {
         if audioEngine.isRunning {
             node.removeTap(onBus: audioBus)
         }
+
         let recordingFormat = node.outputFormat(forBus: audioBus)
         node.installTap(onBus: audioBus, bufferSize: bufferSize, format: recordingFormat) { [weak self] buffer, _ in
             self?.request.append(buffer)
@@ -78,6 +86,10 @@ final class ViewController: UIViewController {
             isRecognitionRunning = false
             return debugPrint(error)
         }
+
+        // Add timer for cancel recognition
+        let timer = Timer(timeInterval: 5.0, target: self, selector: #selector(ViewController.timerEnded), userInfo: nil, repeats: false)
+        RunLoop.current.add(timer, forMode: .commonModes)
 
         // Check recognizer
         guard let recognizer = SFSpeechRecognizer() else {
@@ -121,6 +133,7 @@ final class ViewController: UIViewController {
 
         audioEngine.stop()
         recognitionTask = nil
+        speechRecognizer = nil
 
         isRecognitionRunning = false
     }
