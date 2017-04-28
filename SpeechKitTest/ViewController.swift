@@ -88,7 +88,7 @@ final class ViewController: UIViewController {
         }
 
         // Add timer for cancel recognition
-        let timer = Timer(timeInterval: 5.0, target: self, selector: #selector(ViewController.timerEnded), userInfo: nil, repeats: false)
+        let timer = Timer(timeInterval: 60.0, target: self, selector: #selector(ViewController.timerEnded), userInfo: nil, repeats: false)
         RunLoop.current.add(timer, forMode: .commonModes)
 
         // Check recognizer
